@@ -7,6 +7,20 @@ using System.Windows.Forms;
 
 namespace WifiOpcLink
 {
+    public enum ServerState
+    {
+        Disconnected,
+        Connected,
+        ConnectedWithErrors
+    }
+
+    public enum DataFlowMode
+    {
+        DongleControlled,
+        SendAllData,
+        SendChangedData
+    }
+
     public partial class OpcServer : Component
     {
         [Category("OPC Settings")]
@@ -23,11 +37,16 @@ namespace WifiOpcLink
         [Browsable(true), EditorBrowsable(EditorBrowsableState.Always)]
         public int UpdateRate { get; set; } = 1000;
 
+        [Category("OPC Settings")]
+        [Description("Define data flow mode of opc link.")]
+        [Browsable(true), EditorBrowsable(EditorBrowsableState.Always)]
+        public DataFlowMode DataFlowMode { get; set; }
+
         [Category("OPC Status")]
         [Description("Status of Server Connection.")]
-        public string ServerState
+        public ServerState ServerState
         {
-            get => server?.ServerState == 1 ? "Connected" : "Disconnected";
+            get => server?.ServerState == 1 ? ServerState.Connected : ServerState.Disconnected;
         }
 
         [Category("OPC Objects")]
@@ -38,15 +57,27 @@ namespace WifiOpcLink
         [Description("Dongle linked to this OPC Server.")]
         public OpcWifiDongle Dongle { get; set; }
 
+        [Category("OPC Status")]
+        [JsonIgnore]
+        public bool Error { get; set; }
+
+        [Category("OPC Status")]
+        [JsonIgnore]
+        public string Log { get; set; }
+
+        public event EventHandler LogUpdated;
 
         private OPCServer server;
-        OPCGroup group;
+        private bool allDataRequested;
+        private OPCGroup group;
+        private List<WifiOpcLink.OpcItem> changedItems;
 
         public OpcServer()
         {
             InitializeComponent();
             Dongle = new OpcWifiDongle();
-
+            Dongle.LogUpdated += Dongle_LogUpdated;
+            changedItems = new List<WifiOpcLink.OpcItem>();
         }
 
         public OpcServer(IContainer container)
@@ -55,7 +86,8 @@ namespace WifiOpcLink
 
             InitializeComponent();
             Dongle = new OpcWifiDongle();
-
+            Dongle.LogUpdated += Dongle_LogUpdated;
+            changedItems = new List<WifiOpcLink.OpcItem>();
         }
 
         public void Connect()
@@ -76,12 +108,25 @@ namespace WifiOpcLink
                 group.DataChange += new DIOPCGroupEvent_DataChangeEventHandler(Group_DataChange);
                 group.UpdateRate = UpdateRate;
                 group.IsSubscribed = group.IsActive;
+                group.OPCItems.DefaultIsActive = true;
+
+                Error = false;
 
                 int idx = 1;
                 foreach (var item in OpcItems)
                 {
-                    group.OPCItems.DefaultIsActive = true;
-                    group.OPCItems.AddItem(item.Id, idx);
+                    try
+                    {
+                        group.OPCItems.AddItem(item.Id, idx);
+                        item.Status = OpcItemStatus.Good;
+                    }
+                    catch (Exception ex)
+                    {
+                        Error = true;
+                        item.Status = OpcItemStatus.Bad;
+                        Console.WriteLine($"Error trying to add {item.Id} to opc link.");
+                        Console.WriteLine(ex.Message);
+                    }
                     idx++;
                 }
             }
@@ -94,7 +139,7 @@ namespace WifiOpcLink
 
         private void Group_DataChange(int TransactionID, int NumItems, ref Array ClientHandles, ref Array ItemValues, ref Array Qualities, ref Array TimeStamps)
         {
-            var changedTags = new List<Tag>();
+            changedItems.Clear();
             for (int i = 1; i <= NumItems; i++)
             {
                 var itId = Convert.ToInt32(ClientHandles.GetValue(i));
@@ -102,14 +147,81 @@ namespace WifiOpcLink
                 {
                     var value = ItemValues.GetValue(i);
                     OpcItems[itId - 1].Value = value;
-                    changedTags.Add(new Tag() {
-                        Name = OpcItems[itId - 1].Tag,
-                        Value = OpcItems[itId - 1].Value
-                    });;
+                    changedItems.Add(OpcItems[itId - 1]);
                 }
             }
-            Dongle.SendData(JsonConvert.SerializeObject(changedTags));
+
+            SendData();
         }
 
+        private void Dongle_LogUpdated(object sender, EventArgs e)
+        {
+            allDataRequested = true;
+        }
+
+        private void SendData()
+        {
+            switch (DataFlowMode)
+            {
+                case DataFlowMode.DongleControlled:
+                    if (allDataRequested)
+                    {
+                        allDataRequested = false;
+                        SendAllData();
+                    }
+                    else
+                    {
+                        SendChangedData();
+                    }
+                    break;
+                case DataFlowMode.SendAllData:
+                    SendAllData();
+                    break;
+                case DataFlowMode.SendChangedData:
+                    SendChangedData();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void SendChangedData()
+        {
+            for (int i = 0; i < changedItems.Count; i++)
+            {
+                OpcItem item = changedItems[i];
+                var tag = ConvertToTag(ref item);
+                var data = JsonConvert.SerializeObject(tag);
+                Log = data + '\n';
+                LogUpdated?.Invoke(this, null);
+                Dongle.SendData(data);
+            }
+        }
+
+        private void SendAllData()
+        {
+            for (int i = 0; i < OpcItems.Length; i++)
+            {
+                OpcItem item = OpcItems[i];
+                var tag = ConvertToTag(ref item);
+                var data = JsonConvert.SerializeObject(tag);
+                Log = data + '\n';
+                LogUpdated?.Invoke(this, null);
+                Dongle.SendData(data);
+            }
+        }
+
+        private Tag ConvertToTag(ref WifiOpcLink.OpcItem item)
+        {
+            var tag = new Tag();
+            tag.Name = item.Tag;
+            if (item.GetBit > -1)
+            {
+                tag.Value = ((int)item.Value & (1 << item.GetBit)) != 0;
+                item.Value = tag.Value;
+            }
+            tag.Value = item.Reverse ? !(bool)item.Value : item.Value;
+            return tag;
+        }
     }
 }

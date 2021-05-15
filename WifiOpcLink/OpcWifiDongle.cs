@@ -5,6 +5,7 @@ using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 
 namespace WifiOpcLink
 {
@@ -16,18 +17,31 @@ namespace WifiOpcLink
 
         public string Port { get => serialPort.PortName; set => serialPort.PortName = value; }
 
+        [JsonIgnore]
+        public string Log { get; set; }
+
+        public event EventHandler LogUpdated;
+
         public OpcWifiDongle()
         {
             serialPort = new SerialPort();
             serialPort.BaudRate = 115200;
             serialPort.ReadTimeout = 500;
             serialPort.WriteTimeout = 500;
+            serialPort.DataReceived += SerialPort_DataReceived;
+        }
+
+        private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            Log = serialPort.ReadExisting();
+            LogUpdated?.Invoke(sender, e);
         }
 
         public void Connect()
         {
             try
             {
+                if (!serialPort.IsOpen) serialPort.PortName = Port;
                 serialPort.Open();
                 serialPort.WriteLine("WifiOpcDongle?");
                 var r = serialPort.ReadLine();
@@ -69,7 +83,6 @@ namespace WifiOpcLink
             {
                 if (serialPort.IsOpen) serialPort.Close();
                 serialPort.PortName = port;
-
                 try
                 {
                     serialPort.Open();
@@ -77,7 +90,7 @@ namespace WifiOpcLink
                     var r = serialPort.ReadLine();
                     if (r == "Yes\r")
                     {
-                        MessageBox.Show("Device connected");
+                        MessageBox.Show("Device connected!", "Info");
                         return;
                     }
                 }
@@ -86,7 +99,6 @@ namespace WifiOpcLink
                     Console.WriteLine(ex.StackTrace);
                 }
             }
-
             serialPort.Close();
             MessageBox.Show("Device not founded.", "Error");
         }

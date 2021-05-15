@@ -22,7 +22,20 @@ namespace WifiOpcLink
         private void Form1_Load(object sender, EventArgs e)
         {
             propertyGrid.SelectedObject = App.Project.Server;
+            App.Project.Server.LogUpdated += Server_LogUpdated;
+            App.Project.Server.Dongle.LogUpdated += Dongle_LogUpdated;
         }
+
+        private void Server_LogUpdated(object sender, EventArgs e)
+        {
+            consoleServer.AppendText(App.Project.Server.Log);
+        }
+
+        private void Dongle_LogUpdated(object sender, EventArgs e)
+        {
+            consoleDongle.AppendText(App.Project.Server.Dongle.Log);
+        }
+
 
         private void propertyGrid1_Click(object sender, EventArgs e)
         {
@@ -62,8 +75,8 @@ namespace WifiOpcLink
         {
             App.Project.Server.Connect();
             var state = App.Project.Server.ServerState;
-            timer1.Enabled = state == "Connected";
-            statusOPC.Text = state;
+            timer1.Enabled = state == ServerState.Connected;
+            statusOPC.Text = state.ToString();
             propertyGrid.SelectedObject = App.Project.Server;
         }
 
@@ -71,8 +84,8 @@ namespace WifiOpcLink
         {
             App.Project.Server.Disconnect();
             var state = App.Project.Server.ServerState;
-            timer1.Enabled = state == "Connected";
-            statusOPC.Text = state;
+            timer1.Enabled = state == ServerState.Connected;
+            statusOPC.Text = state.ToString();
             propertyGrid.SelectedObject = App.Project.Server;
         }
 
@@ -118,6 +131,21 @@ namespace WifiOpcLink
         private void menuProjectSaveAs_Click(object sender, EventArgs e)
         {
             App.Project.SaveAs();
+        }
+
+        private void sendSettingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void clearLogToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            consoleServer.Text = "";
+        }
+
+        private void clearLogToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            consoleDongle.Text = "";
         }
     }
 }
