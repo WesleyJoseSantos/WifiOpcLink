@@ -92,14 +92,28 @@ namespace WifiOpcLink
 
         public void Connect()
         {
-            server = new OPCAutomation.OPCServer();
+            try
+            {
+                server = new OPCAutomation.OPCServer();
+            }
+            catch (Exception)
+            {
+                Log = "Error on client instance creation." +
+                    "Try x86 version of application.";
+                LogUpdated?.Invoke(this, null);
+                return;
+            }
+
             try
             {
                 server.Connect(ServerName, NodeName);
             }
             catch (Exception)
             {
+                Log = $"Connection to server {ServerName} failed";
+                LogUpdated?.Invoke(this, null);
                 MessageBox.Show($"Connection to server {ServerName} failed", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
 
             if (OpcItems != null)
@@ -124,8 +138,10 @@ namespace WifiOpcLink
                     {
                         Error = true;
                         item.Status = OpcItemStatus.Bad;
-                        Console.WriteLine($"Error trying to add {item.Id} to opc link.");
-                        Console.WriteLine(ex.Message);
+                        Log = $"Error trying to add {item.Id} to opc link.";
+                        LogUpdated?.Invoke(this, null);
+                        Log = ex.Message;
+                        LogUpdated?.Invoke(this, null);
                     }
                     idx++;
                 }
@@ -192,8 +208,6 @@ namespace WifiOpcLink
                 OpcItem item = changedItems[i];
                 var tag = ConvertToTag(ref item);
                 var data = JsonConvert.SerializeObject(tag);
-                Log = data + '\n';
-                LogUpdated?.Invoke(this, null);
                 Dongle.SendData(data);
             }
         }
@@ -205,8 +219,6 @@ namespace WifiOpcLink
                 OpcItem item = OpcItems[i];
                 var tag = ConvertToTag(ref item);
                 var data = JsonConvert.SerializeObject(tag);
-                Log = data + '\n';
-                LogUpdated?.Invoke(this, null);
                 Dongle.SendData(data);
             }
         }

@@ -26,14 +26,20 @@ namespace WifiOpcLink
         {
             serialPort = new SerialPort();
             serialPort.BaudRate = 115200;
-            serialPort.ReadTimeout = 500;
-            serialPort.WriteTimeout = 500;
+            serialPort.ReadTimeout = 800;
+            serialPort.WriteTimeout = 800;
             serialPort.DataReceived += SerialPort_DataReceived;
         }
 
         private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            Log = serialPort.ReadExisting();
+            try
+            {
+                Log = serialPort.ReadExisting();
+            }
+            catch (Exception)
+            {
+            }
             LogUpdated?.Invoke(sender, e);
         }
 
@@ -45,19 +51,19 @@ namespace WifiOpcLink
                 serialPort.Open();
                 serialPort.WriteLine("WifiOpcDongle?");
                 var r = serialPort.ReadLine();
-                if (r == "Yes")
+                if (r == "Yes" || r == "Yes\r")
                 {
-                    MessageBox.Show("Device connected");
+                    MessageBox.Show("Device connected!", "Info");
                     return;
                 }
                 else
                 {
                     serialPort.Close();
+                    MessageBox.Show("Connection failed!", "Info");
                 }
             }
             catch (Exception ex)
             {
-                serialPort.Close();
                 MessageBox.Show(ex.Message);
             }
         }
@@ -107,7 +113,6 @@ namespace WifiOpcLink
         {
             try
             {
-                Console.WriteLine(data);
                 if (serialPort.IsOpen)
                 {
                     serialPort.WriteLine(data);

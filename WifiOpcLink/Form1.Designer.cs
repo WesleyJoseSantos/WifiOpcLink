@@ -43,12 +43,14 @@ namespace WifiOpcLink
             this.menuServerConnect = new System.Windows.Forms.ToolStripMenuItem();
             this.menuServerDisconnect = new System.Windows.Forms.ToolStripMenuItem();
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.clearLogToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.opcDongleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.searchToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.connectToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.disconnectToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sendSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.settingsToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.clearLogToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.statusOPC = new System.Windows.Forms.ToolStripStatusLabel();
@@ -59,13 +61,15 @@ namespace WifiOpcLink
             this.consoleServer = new System.Windows.Forms.TextBox();
             this.tabPageDongle = new System.Windows.Forms.TabPage();
             this.consoleDongle = new System.Windows.Forms.TextBox();
-            this.clearLogToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.clearLogToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.menu.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPageServer.SuspendLayout();
             this.tabPageDongle.SuspendLayout();
+            this.splitContainer1.Panel1.SuspendLayout();
+            this.splitContainer1.Panel2.SuspendLayout();
+            this.splitContainer1.SuspendLayout();
             this.SuspendLayout();
             // 
             // timer1
@@ -76,17 +80,17 @@ namespace WifiOpcLink
             // propertyGrid
             // 
             this.propertyGrid.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.propertyGrid.Location = new System.Drawing.Point(0, 24);
+            this.propertyGrid.Location = new System.Drawing.Point(0, 0);
             this.propertyGrid.Name = "propertyGrid";
-            this.propertyGrid.Size = new System.Drawing.Size(381, 335);
+            this.propertyGrid.Size = new System.Drawing.Size(381, 326);
             this.propertyGrid.TabIndex = 0;
             // 
             // menu
             // 
             this.menu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.arquivoToolStripMenuItem,
-            this.servidorToolStripMenuItem,
-            this.opcDongleToolStripMenuItem});
+            this.opcDongleToolStripMenuItem,
+            this.servidorToolStripMenuItem});
             this.menu.Location = new System.Drawing.Point(0, 0);
             this.menu.Name = "menu";
             this.menu.Size = new System.Drawing.Size(381, 24);
@@ -172,12 +176,19 @@ namespace WifiOpcLink
             this.settingsToolStripMenuItem.Text = "Settings";
             this.settingsToolStripMenuItem.Click += new System.EventHandler(this.settingsToolStripMenuItem_Click);
             // 
+            // clearLogToolStripMenuItem1
+            // 
+            this.clearLogToolStripMenuItem1.Name = "clearLogToolStripMenuItem1";
+            this.clearLogToolStripMenuItem1.Size = new System.Drawing.Size(133, 22);
+            this.clearLogToolStripMenuItem1.Text = "Clear Log";
+            this.clearLogToolStripMenuItem1.Click += new System.EventHandler(this.clearLogToolStripMenuItem1_Click);
+            // 
             // opcDongleToolStripMenuItem
             // 
             this.opcDongleToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.searchToolStripMenuItem,
             this.connectToolStripMenuItem,
             this.disconnectToolStripMenuItem,
+            this.searchToolStripMenuItem,
             this.sendSettingsToolStripMenuItem,
             this.settingsToolStripMenuItem1,
             this.clearLogToolStripMenuItem});
@@ -220,6 +231,13 @@ namespace WifiOpcLink
             this.settingsToolStripMenuItem1.Text = "Settings";
             this.settingsToolStripMenuItem1.Click += new System.EventHandler(this.settingsToolStripMenuItem1_Click);
             // 
+            // clearLogToolStripMenuItem
+            // 
+            this.clearLogToolStripMenuItem.Name = "clearLogToolStripMenuItem";
+            this.clearLogToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
+            this.clearLogToolStripMenuItem.Text = "Clear Log";
+            this.clearLogToolStripMenuItem.Click += new System.EventHandler(this.clearLogToolStripMenuItem_Click);
+            // 
             // statusStrip1
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -261,11 +279,11 @@ namespace WifiOpcLink
             // 
             this.tabControl1.Controls.Add(this.tabPageServer);
             this.tabControl1.Controls.Add(this.tabPageDongle);
-            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.tabControl1.Location = new System.Drawing.Point(0, 359);
+            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(381, 100);
+            this.tabControl1.Size = new System.Drawing.Size(381, 105);
             this.tabControl1.TabIndex = 4;
             // 
             // tabPageServer
@@ -274,7 +292,7 @@ namespace WifiOpcLink
             this.tabPageServer.Location = new System.Drawing.Point(4, 22);
             this.tabPageServer.Name = "tabPageServer";
             this.tabPageServer.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageServer.Size = new System.Drawing.Size(373, 74);
+            this.tabPageServer.Size = new System.Drawing.Size(373, 79);
             this.tabPageServer.TabIndex = 0;
             this.tabPageServer.Text = "Servidor";
             this.tabPageServer.UseVisualStyleBackColor = true;
@@ -288,7 +306,7 @@ namespace WifiOpcLink
             this.consoleServer.Name = "consoleServer";
             this.consoleServer.ReadOnly = true;
             this.consoleServer.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.consoleServer.Size = new System.Drawing.Size(367, 68);
+            this.consoleServer.Size = new System.Drawing.Size(367, 73);
             this.consoleServer.TabIndex = 4;
             // 
             // tabPageDongle
@@ -297,7 +315,7 @@ namespace WifiOpcLink
             this.tabPageDongle.Location = new System.Drawing.Point(4, 22);
             this.tabPageDongle.Name = "tabPageDongle";
             this.tabPageDongle.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageDongle.Size = new System.Drawing.Size(373, 77);
+            this.tabPageDongle.Size = new System.Drawing.Size(373, 74);
             this.tabPageDongle.TabIndex = 1;
             this.tabPageDongle.Text = "Dongle";
             this.tabPageDongle.UseVisualStyleBackColor = true;
@@ -311,30 +329,33 @@ namespace WifiOpcLink
             this.consoleDongle.Name = "consoleDongle";
             this.consoleDongle.ReadOnly = true;
             this.consoleDongle.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.consoleDongle.Size = new System.Drawing.Size(367, 71);
+            this.consoleDongle.Size = new System.Drawing.Size(367, 68);
             this.consoleDongle.TabIndex = 5;
             // 
-            // clearLogToolStripMenuItem
+            // splitContainer1
             // 
-            this.clearLogToolStripMenuItem.Name = "clearLogToolStripMenuItem";
-            this.clearLogToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.clearLogToolStripMenuItem.Text = "Clear Log";
-            this.clearLogToolStripMenuItem.Click += new System.EventHandler(this.clearLogToolStripMenuItem_Click);
+            this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer1.Location = new System.Drawing.Point(0, 24);
+            this.splitContainer1.Name = "splitContainer1";
+            this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
-            // clearLogToolStripMenuItem1
+            // splitContainer1.Panel1
             // 
-            this.clearLogToolStripMenuItem1.Name = "clearLogToolStripMenuItem1";
-            this.clearLogToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
-            this.clearLogToolStripMenuItem1.Text = "Clear Log";
-            this.clearLogToolStripMenuItem1.Click += new System.EventHandler(this.clearLogToolStripMenuItem1_Click);
+            this.splitContainer1.Panel1.Controls.Add(this.propertyGrid);
+            // 
+            // splitContainer1.Panel2
+            // 
+            this.splitContainer1.Panel2.Controls.Add(this.tabControl1);
+            this.splitContainer1.Size = new System.Drawing.Size(381, 435);
+            this.splitContainer1.SplitterDistance = 326;
+            this.splitContainer1.TabIndex = 5;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(381, 481);
-            this.Controls.Add(this.propertyGrid);
-            this.Controls.Add(this.tabControl1);
+            this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.menu);
             this.MainMenuStrip = this.menu;
@@ -354,6 +375,9 @@ namespace WifiOpcLink
             this.tabPageServer.PerformLayout();
             this.tabPageDongle.ResumeLayout(false);
             this.tabPageDongle.PerformLayout();
+            this.splitContainer1.Panel1.ResumeLayout(false);
+            this.splitContainer1.Panel2.ResumeLayout(false);
+            this.splitContainer1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -391,6 +415,7 @@ namespace WifiOpcLink
         private System.Windows.Forms.TextBox consoleDongle;
         private System.Windows.Forms.ToolStripMenuItem clearLogToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem clearLogToolStripMenuItem;
+        private System.Windows.Forms.SplitContainer splitContainer1;
     }
 }
 
