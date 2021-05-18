@@ -33,7 +33,10 @@ namespace WifiOpcLink
 
         private void Dongle_LogUpdated(object sender, EventArgs e)
         {
-            consoleDongle.AppendText(App.Project.Server.Dongle.Log);
+            consoleDongle.Invoke((MethodInvoker)delegate
+            {
+                consoleDongle.AppendText(App.Project.Server.Dongle.Log);
+            });
         }
 
 
@@ -73,6 +76,7 @@ namespace WifiOpcLink
 
         private void menuServerConnect_Click(object sender, EventArgs e)
         {
+            App.SaveDefaultFile();
             App.Project.Server.Connect();
             var state = App.Project.Server.ServerState;
             timer1.Enabled = state == ServerState.Connected;
@@ -82,6 +86,7 @@ namespace WifiOpcLink
 
         private void menuServerDisconnect_Click(object sender, EventArgs e)
         {
+            App.SaveDefaultFile();
             App.Project.Server.Disconnect();
             var state = App.Project.Server.ServerState;
             timer1.Enabled = state == ServerState.Connected;
@@ -108,7 +113,7 @@ namespace WifiOpcLink
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             var r = MessageBox.Show("Are you sure?", "Confirm", MessageBoxButtons.YesNo);
-            e.Cancel = r == DialogResult.Cancel;
+            e.Cancel = r == DialogResult.No;
 
             App.SaveDefaultFile();
         }
